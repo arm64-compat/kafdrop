@@ -21,7 +21,6 @@ export MVN="mvn -B"
 export MVN_HELP="$MVN -q org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -DforceStdout=true"
 export KAFDROP_VERSION=$(sh -c "$MVN_HELP -f pom.xml -Dexpression=project.version")
 export ARTIFACT_ID=$(sh -c "$MVN_HELP -f pom.xml -Dexpression=project.artifactId")
-export DOCKER_REPOSITORY=${DOCKER_REPOSITORY}/${ARTIFACT_ID}
 export DOCKER_TAG="$KAFDROP_VERSION"
 
 if [ "$CIRCLE_BRANCH" != "main" ]; then
