@@ -26,19 +26,16 @@ jobs:
     - checkout
     - restore_cache:
         key: m2-{{ checksum "pom.xml" }}
+    - run: &docker-login
+        name: Docker Login
+        command: echo $GITHUB_TOKEN | docker login -u $GITHUB_USERNAME --password-stdin $DOCKER_REGISTRY
     - run:
-        name: Build
+        name: Build & Push
         command: ./build-image.sh
     - save_cache:
         key: m2-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
-    - run: &docker-login
-        name: Docker Login
-        command: echo $GITHUB_TOKEN | docker login -u $GITHUB_USERNAME --password-stdin $DOCKER_REGISTRY
-    - run:
-        name: Deploy
-        command: ./push-image.sh
 
   publish-manifest:
     environment: *common-env
