@@ -40,6 +40,20 @@
         </repository>
     </distributionManagement>
 
+    <profiles>
+        <profile>
+            <id>Arm64</id>
+            <activation>
+                <os>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <docker.base.image>arm64v8/eclipse-temurin:11</docker.base.image>
+            </properties>
+        </profile>
+    </profiles>
+
     <repositories>
         <repository>
             <id>central</id>

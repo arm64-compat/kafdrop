@@ -1,0 +1,70 @@
+version: 2.1
+
+orbs:
+  sdkman: joshdholtz/sdkman@0.2.0
+
+jobs:
+  build-image:
+    parameters:
+      build_platform:
+        description: build_platform - arm / amd
+        type: string
+    environment: &common-env
+      DOCKER_REGISTRY: ghcr.io
+      DOCKER_REPOSITORY: arm64-compat
+    machine:
+      image: ubuntu-2004:current
+    resource_class: << parameters.build_platform >>
+    steps:
+    - sdkman/setup-sdkman
+    - sdkman/sdkman-install:
+        candidate: java
+        version: 11.0.15-tem
+    - run:
+        name: Java Version
+        command: java -version
+    - checkout
+    - restore_cache:
+        key: m2-{{ checksum "pom.xml" }}
+    - run:
+        name: Build
+        command: ./build-image.sh
+    - save_cache:
+        key: m2-{{ checksum "pom.xml" }}
+        paths:
+        - ~/.m2
+    - run: &docker-login
+        name: Docker Login
+        command: echo $GITHUB_TOKEN | docker login -u $GITHUB_USERNAME --password-stdin $DOCKER_REGISTRY
+    - run:
+        name: Deploy
+        command: ./push-image.sh
+
+  publish-manifest:
+    environment: *common-env
+    docker:
+    - image: cimg/openjdk:11.0.13
+    steps:
+    - checkout
+    - setup_remote_docker:
+        version: 20.10.11
+    - run: *docker-login
+    - run:
+        name: Publish Manifest
+        command: ./publish-manifest.sh
+
+workflows:
+  workflow:
+    jobs:
+    - build-image:
+        name: build-<< matrix.build_platform >>
+        matrix:
+          parameters:
+            build_platform:
+            - arm.medium
+            - medium
+    - publish-manifest:
+        name: publish-manifest
+        requires:
+        - build-arm.medium
+        - build-medium
